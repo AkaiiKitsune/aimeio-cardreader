@@ -1,15 +1,16 @@
-aimeio-pcsc
----
+# AimeIO CardReader
 
-PC/SC-based Aime card reader for `segatools`. `aimeio-pcsc` allows you to use PC/SC compliant smart card readers as your Aime card reader in `segatools`. `aimeio-pcsc` only properly supports the old Mifare Classic 1K-based Aime cards.
+This allows you to use smartcard readers (specifically the acr122u) with [segatools](https://gitea.tendokyu.moe/Dniel97/segatools)
 
-If you scan a newer AIC-based Aime, its FeliCa IDm will be provided to the game. The game will not see the correct "access code," but the IDm should be unique to each card so that particular card can still track your plays. 
+# Acknowledgments
 
-Tested on SONY's PaSoRi RC-S300. Other readers should, in theory, also work.
+This is a plugin destined to be used with [Dniel97's](https://gitea.tendokyu.moe/Dniel97)'s segatools fork (but should work on others too).
 
-### Usage
+SmartCard implementation taken from [spicetools](https://github.com/spicetools/spicetools)
 
-To test if your card reader is supported, run `aimereader.exe` and try read your Aime card.
+Initial project made by [nat](https://gitea.tendokyu.moe/nat/aimeio-pcsc)
+
+# Usage
 
 To use it with a game, copy `aimeio.dll` to your `segatools` folder and add the following to your `segatools.ini`:
 
@@ -18,11 +19,15 @@ To use it with a game, copy `aimeio.dll` to your `segatools` folder and add the 
 path=aimeio.dll
 ```
 
-### Build
+If you scan a newer AIC-based Aime, its FeliCa IDm will be provided to the game. The game will not see the correct "access code," but the IDm should be unique to each card so that particular card can still track your plays. 
 
-On Linux:
+As for Mifare cards, their access code won't be 1:1 with a real reader (i still need to fix this). You can still use them and they will work though !
 
-```sh
-meson setup --cross cross-mingw-64.txt b64
-ninja -C b64
-```
+# Build
+
+To build this, you'll need two things :
+
+- [Meson 1.1.0](https://mesonbuild.com)
+- [Build Tools pour Visual Studio 2022](https://visualstudio.microsoft.com/fr/downloads/)
+
+Once you've edited your build64.bat file to point to your local installation of the VS2022 build tools, run build64.bat and the output will be located in `bin/aime.dll`.
