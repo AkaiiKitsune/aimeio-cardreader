@@ -48,10 +48,7 @@ HRESULT aime_io_nfc_poll(uint8_t unit_no);
 
     Minimum API version: 0x0100
 */
-HRESULT aime_io_nfc_get_aime_id(
-        uint8_t unit_no,
-        uint8_t *luid,
-        size_t luid_size);
+HRESULT aime_io_nfc_get_aime_id(uint8_t unit_no, uint8_t *luid, size_t luid_size);
 
 /*
     Attempt to read out a FeliCa card ID ("IDm"). The following are examples
