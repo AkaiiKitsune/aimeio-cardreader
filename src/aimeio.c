@@ -18,11 +18,13 @@ static bool READER_RUNNER_INITIALIZED = false;
 static HANDLE READER_POLL_THREAD;
 static bool READER_POLL_STOP_FLAG;
 
+static bool polling = false;
 static bool HasCard = false;
 uint8_t UID[8] = {0};
 
 struct aime_io_config
 {
+    bool debug;
     wchar_t aime_path[MAX_PATH];
     wchar_t felica_path[MAX_PATH];
     bool felica_gen;
@@ -40,6 +42,12 @@ static void aime_io_config_read(struct aime_io_config *cfg, const wchar_t *filen
 {
     assert(cfg != NULL);
     assert(filename != NULL);
+
+    cfg->debug = GetPrivateProfileIntW(
+        L"aimeio",
+        L"debug",
+        0,
+        filename);
 
     GetPrivateProfileStringW(
         L"aimeio",
@@ -68,6 +76,9 @@ static void aime_io_config_read(struct aime_io_config *cfg, const wchar_t *filen
         L"scan",
         VK_RETURN,
         filename);
+
+    if (aime_io_cfg.debug)
+        printf("DEBUG: aime_io_config_read(filename : %ls). \r\n", filename);
 }
 
 static HRESULT aime_io_read_id_file(const wchar_t *path, uint8_t *bytes, size_t nbytes, int LineToRead)
@@ -182,9 +193,11 @@ static HRESULT aime_io_generate_felica(const wchar_t *path, uint8_t *bytes, size
 #pragma region READER SPECIFIC
 static unsigned int __stdcall reader_poll_thread_proc(void *ctx)
 {
+    if (aime_io_cfg.debug)
+        printf("DEBUG: reader_poll_thread_proc(). \r\n");
     while (!READER_POLL_STOP_FLAG)
     {
-        if (!HasCard)
+        if (!HasCard && polling)
         {
             uint8_t _UID[8] = {0};
             scard_update(_UID);
@@ -212,6 +225,7 @@ uint16_t aime_io_get_api_version(void)
 
 HRESULT aime_io_init(void)
 {
+
     // At init we want to open a console...
     int ret = AllocConsole();
     FILE *fp;
@@ -221,6 +235,9 @@ HRESULT aime_io_init(void)
 
     // We then read the segatools config file to get settings.
     aime_io_config_read(&aime_io_cfg, L".\\segatools.ini");
+
+    if (aime_io_cfg.debug)
+        printf("DEBUG: aime_io_init(). \r\n");
 
     //  Find and initialize reader(s)
     if (!READER_RUNNER_INITIALIZED)
@@ -252,8 +269,13 @@ HRESULT aime_io_init(void)
 
 HRESULT aime_io_nfc_poll(uint8_t unit_no)
 {
+    if (aime_io_cfg.debug)
+        printf("\n\nDEBUG: aime_io_nfc_poll(unit_no %d). \r\n", unit_no);
+
     if (unit_no != 0)
         return S_OK;
+
+    polling = true;
 
     bool sense;
     HRESULT hr;
@@ -326,6 +348,9 @@ HRESULT aime_io_nfc_poll(uint8_t unit_no)
 
 HRESULT aime_io_nfc_get_aime_id(uint8_t unit_no, uint8_t *luid, size_t luid_size)
 {
+    if (aime_io_cfg.debug)
+        printf("DEBUG: aime_io_nfc_get_aime_id(unit_no : %d). \r\n", unit_no);
+
     assert(luid != NULL);
     assert(luid_size == sizeof(aime_io_aime_id));
 
@@ -347,6 +372,9 @@ HRESULT aime_io_nfc_get_aime_id(uint8_t unit_no, uint8_t *luid, size_t luid_size
 
 HRESULT aime_io_nfc_get_felica_id(uint8_t unit_no, uint64_t *IDm)
 {
+    if (aime_io_cfg.debug)
+        printf("DEBUG: aime_io_nfc_get_felica_id(unit_no : %d). \r\n", unit_no);
+
     uint64_t val;
     size_t i;
 
@@ -368,6 +396,7 @@ HRESULT aime_io_nfc_get_felica_id(uint8_t unit_no, uint64_t *IDm)
 
     if (HasCard)
     {
+        polling = false;
         HasCard = false;
 
         uint64_t val;
@@ -385,5 +414,7 @@ HRESULT aime_io_nfc_get_felica_id(uint8_t unit_no, uint64_t *IDm)
 
 void aime_io_led_set_color(uint8_t unit_no, uint8_t r, uint8_t g, uint8_t b)
 {
+    if (aime_io_cfg.debug)
+        printf("DEBUG: aime_io_led_set_color(unit_no : %d, r : %d, g : %d, b : %d). \r\n", unit_no, r, g, b);
 }
 #pragma endregion
