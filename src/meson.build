@@ -9,7 +9,7 @@ deps = [
     setupapi_lib,
 ]
 
-shared_library(
+aimeio_dll = shared_library(
     'aimeio',
     implicit_include_directories : false,    
     vs_module_defs : 'aimeio.def',
@@ -22,3 +22,5 @@ shared_library(
         inc
     ]
 )
+
+executable('aimetest', 'aimetest.c', link_with : aimeio_dll)

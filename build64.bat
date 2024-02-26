@@ -10,3 +10,4 @@ ninja -C build64
 
 mkdir bin
 copy build64\src\aimeio.dll bin\aimeio.dll
+copy build64\src\aimetest.exe bin\aimetest.exe
