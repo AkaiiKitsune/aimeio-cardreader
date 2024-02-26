@@ -26,6 +26,7 @@ scan=0x0D     ;Sets the key which will be used to insert a card in game. The def
 ;aimePath=    ;Manually specify an aime.txt file
 ;felicaPath=  ;Manually specify a felica.txt file
 ;felicaGen=0  ;Generate a new random card if it's missing from the file
+;debug=0      ;Display function calls
 ```
 
 ## Scanning cards

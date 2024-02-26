@@ -48,12 +48,10 @@ int main()
     {
         if (aime_io_nfc_poll(0) == S_OK)
         {
-            Sleep(500);
             if (aime_io_nfc_get_felica_id(0, &IDm) == S_OK)
             {
                 // aime_io_led_set_color(0, 0, 255, 0);
                 printf("Found FeliCa card with uid %llx\r\n\n", IDm);
-                continue;
             }
             if (aime_io_nfc_get_aime_id(0, luid, 10) == S_OK)
             {
@@ -64,8 +62,8 @@ int main()
                     printf("%02x ", luid[i]);
                 }
                 printf("\r\n\n");
-                continue;
             }
+            Sleep(500);
             // printf("poll ok but no card?!\r\n");
         }
         // Sleep(300);
