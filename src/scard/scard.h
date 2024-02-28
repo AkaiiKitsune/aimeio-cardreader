@@ -34,15 +34,32 @@ enum AIME_CARDTYPE
     FeliCa = 0x02
 };
 
-// Structure containing card_type, card_id and card_id_len
+// Structure containing card_type and card_id
 struct card_data
 {
     uint8_t card_type;
     uint8_t card_id[32];
 };
 
+/*
+    Initialize the smartcard reader
+
+    - config: struct loaded from segatools.ini
+*/
 bool scard_init(struct aime_io_config config);
 
+/*
+    Checks if a new card has been detected
+
+    - card_data: struct containing the card data
+*/
 void scard_poll(struct card_data *card_data);
 
+/*
+    Read the card's data
+
+    - card_data: struct containing the card data
+    - _hContext: context for the card reader
+    - _readerName: name of the card reader to use
+*/
 void scard_update(struct card_data *card_data, SCARDCONTEXT _hContext, LPCTSTR _readerName);

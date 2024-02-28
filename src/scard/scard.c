@@ -6,9 +6,16 @@ int readCooldown = 500;
 // based off acr122u reader, see page 26 in api document.
 // https://www.acs.com.hk/en/download-manual/419/API-ACR122U-2.04.pdf
 
-#define PARAM_POLLRATE 0xDFu
+// #define PARAM_POLLRATE 0xDFu
+#define PARAM_POLLRATE 0x9Bu
 static const BYTE PARAM_SET_PICC[5] = {0xFFu, 0x00u, 0x51u, PARAM_POLLRATE, 0x00u};
+static const BYTE PARAM_LOAD_KEY[11] = {0xFFu, 0x82u, 0x00u, 0x00u, 0x06u, 0x57u, 0x43u, 0x43u, 0x46u, 0x76u, 0x32u};
+static const BYTE PARAM_ENABLE_BUZZER[5] = {0xFFu, 0x00u, 0x52u, 0xFFu, 0x00u};
+static const BYTE PARAM_DISABLE_BUZZER[5] = {0xFFu, 0x00u, 0x52u, 0x00u, 0x00u};
+
 static const BYTE COMMAND_GET_UID[5] = {0xFFu, 0xCAu, 0x00u, 0x00u, 0x00u};
+static const BYTE COMMAND_AUTH_BLOCK2[10] = {0xFFu, 0x86u, 0x00u, 0x00u, 0x05u, 0x01u, 0x00u, 0x02u, 0x61u, 0x00u};
+static const BYTE COMMAND_READ_BLOCK2[5] = {0xFFu, 0xB0u, 0x00u, 0x02u, 0x10u};
 
 // return bytes from device
 #define PICC_SUCCESS 0x90u
@@ -86,11 +93,17 @@ bool scard_init(struct aime_io_config config)
         }
         printf("scard_init: Connected to reader: %s, sending PICC params\n", reader_list);
 
-        // set the reader params
+        // Enable/Disable the buzzer output
         DWORD cbRecv = MAX_APDU_SIZE;
         BYTE pbRecv[MAX_APDU_SIZE];
+        lRet = SCardControl(hCard, SCARD_CTL_CODE(3500), config.disable_buzzer ? PARAM_DISABLE_BUZZER : PARAM_ENABLE_BUZZER, sizeof(config.disable_buzzer ? PARAM_DISABLE_BUZZER : PARAM_ENABLE_BUZZER), pbRecv, cbRecv, &cbRecv);
+        if (lRet != SCARD_S_SUCCESS)
+            printf("scard_init: Couldn't %s buzzer : 0x%08X\n", config.disable_buzzer ? "disable" : "enable", lRet);
+        else
+            printf("scard_init: %s buzzer\n", config.disable_buzzer ? "Disabled" : "Enabled");
+
+        // set the reader params to allow reading FeliCa cards.
         lRet = SCardControl(hCard, SCARD_CTL_CODE(3500), PARAM_SET_PICC, sizeof(PARAM_SET_PICC), pbRecv, cbRecv, &cbRecv);
-        Sleep(100);
         if (lRet != SCARD_S_SUCCESS)
         {
             printf("scard_init: Error setting PICC params : 0x%08X\n", lRet);
@@ -203,16 +216,50 @@ void scard_update(struct card_data *card_data, SCARDCONTEXT _hContext, LPCTSTR _
     }
 
     BYTE cardProtocol = atr[12];
-    if (cardProtocol == SCARD_ATR_PROTOCOL_ISO14443_PART3)
+    if (cardProtocol == SCARD_ATR_PROTOCOL_ISO14443_PART3) // Handling Aime
     {
         printf("scard_update: Card protocol: ISO14443_PART3\n");
+
+        printf("scard_update: Loading key for block auth onto reader...\n");
+        cbRecv = MAX_APDU_SIZE;
+        if ((lRet = SCardTransmit(hCard, pci, PARAM_LOAD_KEY, sizeof(PARAM_LOAD_KEY), NULL, pbRecv, &cbRecv)) != SCARD_S_SUCCESS)
+        {
+            printf("scard_update: Error loading key to reader : 0x%08X\n", lRet);
+            return;
+        }
+
+        if (cbRecv > 1 && pbRecv[0] == PICC_ERROR)
+        {
+            printf("scard_update: loading key failed\n");
+            return;
+        }
+
+        printf("scard_update: key has been loaded, authenticating block 2...\n");
+
+        cbRecv = MAX_APDU_SIZE;
+        if ((lRet = SCardTransmit(hCard, pci, COMMAND_AUTH_BLOCK2, sizeof(COMMAND_AUTH_BLOCK2), NULL, pbRecv, &cbRecv)) != SCARD_S_SUCCESS)
+        {
+            printf("scard_update: Couldn't authenticate for block 2 : 0x%08X\n", lRet);
+            return;
+        }
+
+        printf("scard_update: authentication successful, reading block 2...\n");
+
+        cbRecv = MAX_APDU_SIZE;
+        if ((lRet = SCardTransmit(hCard, pci, COMMAND_READ_BLOCK2, sizeof(COMMAND_READ_BLOCK2), NULL, pbRecv, &cbRecv)) != SCARD_S_SUCCESS)
+        {
+            printf("scard_update: Couldn't read block 2 : 0x%08X\n", lRet);
+            return;
+        }
+
+        memcpy(card_data->card_id, pbRecv + 6, 10);
         card_data->card_type = Mifare;
+        return;
     }
 
     else if (cardProtocol == SCARD_ATR_PROTOCOL_FELICA_212K) // Handling FeliCa
     {
         printf("scard_update: Card protocol: FELICA_212K\n");
-        card_data->card_type = FeliCa;
 
         // Read mID
         cbRecv = MAX_APDU_SIZE;
@@ -240,6 +287,8 @@ void scard_update(struct card_data *card_data, SCARDCONTEXT _hContext, LPCTSTR _
             printf("scard_update: taking first 8 bytes of %d received\n", cbRecv);
 
         memcpy(card_data->card_id, pbRecv, 8);
+        card_data->card_type = FeliCa;
+        return;
     }
 
     else
@@ -247,15 +296,4 @@ void scard_update(struct card_data *card_data, SCARDCONTEXT _hContext, LPCTSTR _
         printf("scard_update: Unknown NFC Protocol: 0x%02X\n", cardProtocol);
         return;
     }
-
-    // Copy UID to struct, reversing if necessary
-    // card_info_t card_info;
-    // if (shouldReverseUid)
-    //     for (DWORD i = 0; i < 8; i++)
-    //         card_info.uid[i] = pbRecv[7 - i];
-    // else
-    //     memcpy(card_info.uid, pbRecv, 8);
-
-    // for (int i = 0; i < 8; ++i)
-    //     buf[i] = card_info.uid[i];
 }

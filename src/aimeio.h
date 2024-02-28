@@ -12,6 +12,7 @@ struct aime_io_config
     wchar_t aime_path[MAX_PATH];
     wchar_t felica_path[MAX_PATH];
     wchar_t reader_name[MAX_PATH];
+    bool disable_buzzer;
     bool reader_optional;
     uint8_t vk_scan;
 };

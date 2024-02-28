@@ -14,6 +14,8 @@ All the logic for reading cards from a file has been taken from [CrazyRedMachine
 
 # Usage
 
+Make sure to install the ACR122U's [driver](https://www.acs.com.hk/en/driver/3/acr122u-usb-nfc-reader/) before using this.
+
 To use it with a game, copy `aimeio.dll` to your `segatools` folder and add the following to your `segatools.ini`:
 
 ```ini
@@ -24,11 +26,12 @@ scan=0x0D          ;Sets the key which will be used to insert a card in game. Th
 
 ;Everything below this line is optional.
 
-;readerOptional=1  ;Make reader optional, so that you can still use the keyboard
-;readerName=""     ;Force using a reader by setting it's name (in case multiple readers are detected)
-;aimePath=""       ;Manually specify an aime.txt file
-;felicaPath=""     ;Manually specify a felica.txt file
-;debug=0           ;Display function calls
+;readerOptional=1           ;Make reader optional, so that you can still use the keyboard
+;readerName="ACS ACR122 0"  ;Manually select which reader to use
+;disableBuzzer=0            ;Disable the buzzer 
+;aimePath=""                ;Manually specify an aime.txt file
+;felicaPath=""              ;Manually specify a felica.txt file
+;debug=0                    ;Display function calls
 ```
 
 ## Scanning cards

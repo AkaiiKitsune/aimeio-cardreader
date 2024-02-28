@@ -50,6 +50,12 @@ static void aime_io_config_read(struct aime_io_config *cfg, const wchar_t *filen
         0,
         filename);
 
+    cfg->disable_buzzer = GetPrivateProfileIntW(
+        L"aimeio",
+        L"disableBuzzer",
+        0,
+        filename);
+
     cfg->vk_scan = GetPrivateProfileIntW(
         L"aimeio",
         L"scan",
@@ -253,7 +259,7 @@ HRESULT aime_io_nfc_get_aime_id(uint8_t unit_no, uint8_t *luid, size_t luid_size
     if (card_data.card_type == Mifare)
     {
         memcpy(luid, card_data.card_id, luid_size);
-        printf("aime_io_nfc_get_aime_id: Sending Aime card with luID %02X%02X %02X%02X %02X%02X %02X%02X %02X%02X\r\n", card_data.card_id[0], card_data.card_id[1], card_data.card_id[2], card_data.card_id[3], card_data.card_id[4], card_data.card_id[5], card_data.card_id[6], card_data.card_id[7], card_data.card_id[8], card_data.card_id[9]);
+        printf("aime_io_nfc_get_aime_id: Sending Aime card with luID %02X%02X %02X%02X %02X%02X %02X%02X %02X%02X\r\n\n", card_data.card_id[0], card_data.card_id[1], card_data.card_id[2], card_data.card_id[3], card_data.card_id[4], card_data.card_id[5], card_data.card_id[6], card_data.card_id[7], card_data.card_id[8], card_data.card_id[9]);
 
         memset(&card_data, 0, sizeof(card_data)); // Reset card_data structure
         return S_OK;
@@ -278,7 +284,7 @@ HRESULT aime_io_nfc_get_felica_id(uint8_t unit_no, uint64_t *IDm)
             val = (val << 8) | card_data.card_id[i];
 
         *IDm = val;
-        printf("aime_io_nfc_get_felica_id: Sending FeliCa card with serial %02X%02X %02X%02X %02X%02X %02X%02X\r\n", card_data.card_id[0], card_data.card_id[1], card_data.card_id[2], card_data.card_id[3], card_data.card_id[4], card_data.card_id[5], card_data.card_id[6], card_data.card_id[7]);
+        printf("aime_io_nfc_get_felica_id: Sending FeliCa card with serial %02X%02X %02X%02X %02X%02X %02X%02X\r\n\n", card_data.card_id[0], card_data.card_id[1], card_data.card_id[2], card_data.card_id[3], card_data.card_id[4], card_data.card_id[5], card_data.card_id[6], card_data.card_id[7]);
 
         memset(&card_data, 0, sizeof(card_data)); // Reset card_data structure
         return S_OK;
