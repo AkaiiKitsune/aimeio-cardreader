@@ -18,22 +18,22 @@ To use it with a game, copy `aimeio.dll` to your `segatools` folder and add the 
 
 ```ini
 [aimeio]
-path=aimeio.dll
-scan=0x0D     ;Sets the key which will be used to insert a card in game. The default is 'Return'
+path=aimeio.dll    ;Path to aimeio.dll
+scan=0x0D          ;Sets the key which will be used to insert a card in game. The default is 'Return'
+
 
 ;Everything below this line is optional.
 
-;aimePath=    ;Manually specify an aime.txt file
-;felicaPath=  ;Manually specify a felica.txt file
-;felicaGen=0  ;Generate a new random card if it's missing from the file
-;debug=0      ;Display function calls
+;readerOptional=1  ;Make reader optional, so that you can still use the keyboard
+;readerName=""     ;Force using a reader by setting it's name (in case multiple readers are detected)
+;aimePath=""       ;Manually specify an aime.txt file
+;felicaPath=""     ;Manually specify a felica.txt file
+;debug=0           ;Display function calls
 ```
 
 ## Scanning cards
 
 If you scan a newer AIC-based Aime, its FeliCa IDm will be provided to the game. The game will not see the correct "access code," but the IDm should be unique to each card so that particular card can still track your plays.  
-
-As for Mifare cards, their access code won't be 1:1 with a real reader (i still need to fix this). You can still use them and they will work though !
 
 ## Inserting cards
 

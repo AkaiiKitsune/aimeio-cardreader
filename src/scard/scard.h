@@ -24,23 +24,25 @@
  */
 
 #pragma once
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <winscard.h>
-#include <windows.h>
+#include <src/aimeio.h>
 
-// cardinfo_t is a description of a card that was presented to a reader
-typedef struct card_info
+// Card types
+enum AIME_CARDTYPE
 {
-    int card_type;
-    uint8_t uid[8];
-} card_info_t;
+    Mifare = 0x01,
+    FeliCa = 0x02
+};
 
-void scard_update(uint8_t *buf);
+// Structure containing card_type, card_id and card_id_len
+struct card_data
+{
+    uint8_t card_type;
+    uint8_t card_id[32];
+};
 
-void scard_poll(uint8_t *buf, SCARDCONTEXT _hContext, LPCTSTR _readerName, uint8_t unit_no);
+bool scard_init(struct aime_io_config config);
 
-void scard_clear(uint8_t unitNo);
+void scard_poll(struct card_data *card_data);
 
-bool scard_init();
+void scard_update(struct card_data *card_data, SCARDCONTEXT _hContext, LPCTSTR _readerName);
