@@ -24,23 +24,42 @@
  */
 
 #pragma once
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <winscard.h>
-#include <windows.h>
+#include <src/aimeio.h>
 
-// cardinfo_t is a description of a card that was presented to a reader
-typedef struct card_info
+// Card types
+enum AIME_CARDTYPE
 {
-    int card_type;
-    uint8_t uid[8];
-} card_info_t;
+    Mifare = 0x01,
+    FeliCa = 0x02
+};
 
-void scard_update(uint8_t *buf);
+// Structure containing card_type and card_id
+struct card_data
+{
+    uint8_t card_type;
+    uint8_t card_id[32];
+};
 
-void scard_poll(uint8_t *buf, SCARDCONTEXT _hContext, LPCTSTR _readerName, uint8_t unit_no);
+/*
+    Initialize the smartcard reader
 
-void scard_clear(uint8_t unitNo);
+    - config: struct loaded from segatools.ini
+*/
+bool scard_init(struct aime_io_config config);
 
-bool scard_init();
+/*
+    Checks if a new card has been detected
+
+    - card_data: struct containing the card data
+*/
+void scard_poll(struct card_data *card_data);
+
+/*
+    Read the card's data
+
+    - card_data: struct containing the card data
+    - _hContext: context for the card reader
+    - _readerName: name of the card reader to use
+*/
+void scard_update(struct card_data *card_data, SCARDCONTEXT _hContext, LPCTSTR _readerName);

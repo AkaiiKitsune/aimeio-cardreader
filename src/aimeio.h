@@ -1,9 +1,21 @@
 #pragma once
 
 #include <windows.h>
-
-#include <stddef.h>
+#include <assert.h>
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+
+struct aime_io_config
+{
+    bool debug;
+    wchar_t aime_path[MAX_PATH];
+    wchar_t felica_path[MAX_PATH];
+    wchar_t reader_name[MAX_PATH];
+    bool disable_buzzer;
+    bool reader_optional;
+    uint8_t vk_scan;
+};
 
 /*
     Get the version of the Aime IO API that this DLL supports. This function
