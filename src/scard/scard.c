@@ -107,16 +107,10 @@ bool scard_init(struct aime_io_config config)
         if ((lRet = SCardDisconnect(hCard, SCARD_LEAVE_CARD)) != SCARD_S_SUCCESS)
             printf("scard_init: Failed SCardDisconnect : 0x%08X\n", lRet);
 
-        // Extract the relevant names from the multi-string.
-        readerNameLen = lstrlen(reader_list);
-        reader_name = (LPTSTR)HeapAlloc(GetProcessHeap(), HEAP_GENERATE_EXCEPTIONS, sizeof(TCHAR) * (readerNameLen + 1));
-        memcpy(reader_name, &reader_list, (size_t)(readerNameLen + 1));
-
-        if (reader_name)
-            printf("scard_init: Using reader : %s\n", reader_name);
+        printf("scard_init: Using reader : %s\n", reader_list);
 
         memset(&reader_state, 0, sizeof(SCARD_READERSTATE));
-        reader_state.szReader = reader_name;
+        reader_state.szReader = reader_list;
         return TRUE;
 
     default:
@@ -208,8 +202,6 @@ void scard_update(struct card_data *card_data, SCARDCONTEXT _hContext, LPCTSTR _
         return;
     }
 
-    printf("scard_update: atr Return: len(%zu) = %02x (%08X)\n", sizeof(cByteAtr), (unsigned int)atr, cByteAtr);
-
     BYTE cardProtocol = atr[12];
     if (cardProtocol == SCARD_ATR_PROTOCOL_ISO14443_PART3)
     {
@@ -245,7 +237,7 @@ void scard_update(struct card_data *card_data, SCARDCONTEXT _hContext, LPCTSTR _
             memset(&pbRecv[cbRecv], 0, 8 - cbRecv);
         }
         else if (cbRecv > 8)
-            printf("scard_update: taking first 8 bytes of len(uid) = %02X\n", cbRecv);
+            printf("scard_update: taking first 8 bytes of %d received\n", cbRecv);
 
         memcpy(card_data->card_id, pbRecv, 8);
     }

@@ -51,17 +51,12 @@ int main()
             if (aime_io_nfc_get_felica_id(0, &IDm) == S_OK)
             {
                 // aime_io_led_set_color(0, 0, 255, 0);
-                printf("AIMETEST: Found FeliCa card with uid %llx\r\n\n", IDm);
+                printf("AIMETEST: Found FeliCa card with IDm %llx\r\n\n", IDm);
             }
             if (aime_io_nfc_get_aime_id(0, luid, 10) == S_OK)
             {
                 // aime_io_led_set_color(0, 0, 0, 255);
-                printf("AIMETEST: Found old card with uid ");
-                for (int i = 0; i < 10; i++)
-                {
-                    printf("%02x ", luid[i]);
-                }
-                printf("\r\n\n");
+                printf("AIMETEST: Found old card with luID %02X%02X %02X%02X %02X%02X %02X%02X %02X%02X\r\n", luid[0], luid[1], luid[2], luid[3], luid[4], luid[5], luid[6], luid[7], luid[8], luid[9]);
             }
             Sleep(500);
             // printf("poll ok but no card?!\r\n");

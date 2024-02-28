@@ -139,7 +139,7 @@ static unsigned int __stdcall aime_io_poll_thread_proc(void *ctx)
         printf("DEBUG: aime_io_poll_thread_proc(). \r\n");
     while (!READER_POLL_STOP_FLAG)
     {
-        if (card_data.card_type != 0) // Halting polling once a card is found, waiting for the game to read it's value.
+        if (card_data.card_type == 0) // Halting polling once a card is found, waiting for the game to read it's value.
             scard_poll(&card_data);   // We're trying to find a card. If we do, the card's id and type are written to card_data.
     }
 
@@ -201,7 +201,7 @@ HRESULT aime_io_nfc_poll(uint8_t unit_no)
         return S_OK;
 
     // Don't do anything more if the scan key is not held
-    if (GetAsyncKeyState(aime_io_cfg.vk_scan) & 0x8000)
+    if (!(GetAsyncKeyState(aime_io_cfg.vk_scan) & 0x8000))
         return S_OK;
 
     //  Set which card we want to read (we will read the x'th line in the card's file, x being determined by which key is pressed on the keypad).
@@ -278,7 +278,7 @@ HRESULT aime_io_nfc_get_felica_id(uint8_t unit_no, uint64_t *IDm)
             val = (val << 8) | card_data.card_id[i];
 
         *IDm = val;
-        printf("aime_io_nfc_get_felica_id: Sending FeliCa card with IDm %02X%02X %02X%02X %02X%02X %02X%02X\r\n", card_data.card_id[0], card_data.card_id[1], card_data.card_id[2], card_data.card_id[3], card_data.card_id[4], card_data.card_id[5], card_data.card_id[6], card_data.card_id[7]);
+        printf("aime_io_nfc_get_felica_id: Sending FeliCa card with serial %02X%02X %02X%02X %02X%02X %02X%02X\r\n", card_data.card_id[0], card_data.card_id[1], card_data.card_id[2], card_data.card_id[3], card_data.card_id[4], card_data.card_id[5], card_data.card_id[6], card_data.card_id[7]);
 
         memset(&card_data, 0, sizeof(card_data)); // Reset card_data structure
         return S_OK;
