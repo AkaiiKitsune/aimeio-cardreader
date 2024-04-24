@@ -9,6 +9,27 @@ static struct aime_io_config aime_io_cfg;
 static struct card_data card_data;
 
 #pragma region CONFIG
+// This is used because otherwise loading a reader with a given name while keeping the comment inline in the config file fails..
+void RemoveCommentAndTruncate(wchar_t *value)
+{
+    size_t len = wcslen(value);
+    wchar_t *semicolon = NULL;
+
+    // Remove comments
+    semicolon = wcschr(value, L';');
+    if (semicolon != NULL)
+    {
+        *semicolon = L'\0';
+        len = wcslen(value);
+    }
+
+    // Trim trailing whitespaces
+    while (len > 0 && (value[len - 1] == L' ' || value[len - 1] == L'\t' || value[len - 1] == L'\r' || value[len - 1] == L'\n'))
+    {
+        value[--len] = L'\0';
+    }
+}
+
 static void aime_io_config_read(struct aime_io_config *cfg, const wchar_t *filename)
 {
     assert(cfg != NULL);
@@ -43,6 +64,7 @@ static void aime_io_config_read(struct aime_io_config *cfg, const wchar_t *filen
         cfg->reader_name,
         _countof(cfg->reader_name),
         filename);
+    RemoveCommentAndTruncate(cfg->reader_name);
 
     cfg->reader_optional = GetPrivateProfileIntW(
         L"aimeio",
@@ -95,7 +117,10 @@ static HRESULT aime_io_read_id_file(const wchar_t *path, uint8_t *bytes, size_t 
         }
 
         if (c == '\n')
+        {
             currentLine++;
+            offset++;
+        }
 
         offset++;
     }

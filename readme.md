@@ -2,6 +2,8 @@
 
 This allows you to a smartcard reader (specifically the acr122u) with segatools
 
+**This has only been confirmed working with Chunithm Sun and Sun + so far. Luminous doesn't seem to work yet !**
+
 # Acknowledgments
 
 This is a plugin destined to be used with [Dniel97](https://gitea.tendokyu.moe/Dniel97)'s [segatools fork](https://gitea.tendokyu.moe/Dniel97/segatools) (but should work on others too).
@@ -26,9 +28,9 @@ scan=0x0D          ;Sets the key which will be used to insert a card in game. Th
 
 ;Everything below this line is optional.
 
-;readerOptional=1           ;Make reader optional, so that you can still use the keyboard
-;readerName="ACS ACR122 0"  ;Manually select which reader to use
-;disableBuzzer=0            ;Disable the buzzer 
+readerOptional=1            ;Make reader optional, so that you can still use the keyboard
+readerName=ACS ACR122 0     ;Manually select which reader to use
+disableBuzzer=1             ;Disable the buzzer 
 ;aimePath=""                ;Manually specify an aime.txt file
 ;felicaPath=""              ;Manually specify a felica.txt file
 ;debug=0                    ;Display function calls
